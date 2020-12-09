@@ -1,4 +1,4 @@
-basePath: /v1.0.0/libpod
+basePath: /v1.0.0
 consumes:
 - application/json
 - application/x-tar

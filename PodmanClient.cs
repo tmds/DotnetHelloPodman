@@ -18,7 +18,7 @@ namespace Podman
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.9.4.0 (NJsonSchema v10.3.1.0 (Newtonsoft.Json v12.0.0.0))")]
     public partial class PodmanClient 
     {
-        private string _baseUrl = "http://podman.io/v1.0.0/libpod";
+        private string _baseUrl = "http://podman.io/v1.0.0";
         private System.Net.Http.HttpClient _httpClient;
         private System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings;
     
