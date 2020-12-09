@@ -7860,14 +7860,14 @@ paths:
       summary: Start an exec instance
       tags:
       - exec (compat)
-  /images/{name:.*}:
+  /images/{name}:
     delete:
       description: Delete an image from local storage
       operationId: removeImage
       parameters:
       - description: name or ID of image to delete
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: remove the image even if used by containers or has other tags
@@ -7892,14 +7892,14 @@ paths:
       summary: Remove Image
       tags:
       - images (compat)
-  /images/{name:.*}/get:
+  /images/{name}/get:
     get:
       description: Export an image in tarball format
       operationId: exportImage
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       produces:
@@ -7915,14 +7915,14 @@ paths:
       summary: Export an image
       tags:
       - images (compat)
-  /images/{name:.*}/history:
+  /images/{name}/history:
     get:
       description: Return parent layers of an image.
       operationId: imageHistory
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       produces:
@@ -7937,14 +7937,14 @@ paths:
       summary: History of an image
       tags:
       - images (compat)
-  /images/{name:.*}/json:
+  /images/{name}/json:
     get:
       description: Return low-level information about an image.
       operationId: inspectImage
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       produces:
@@ -7959,14 +7959,14 @@ paths:
       summary: Inspect an image
       tags:
       - images (compat)
-  /images/{name:.*}/push:
+  /images/{name}/push:
     post:
       description: Push an image to a container registry
       operationId: pushImage
       parameters:
       - description: Name of image to push.
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: The tag to associate with the image on the registry.
@@ -7992,14 +7992,14 @@ paths:
       summary: Push Image
       tags:
       - images (compat)
-  /images/{name:.*}/tag:
+  /images/{name}/tag:
     post:
       description: Tag an image so that it becomes part of a repository.
       operationId: tagImage
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: the repository to tag in
@@ -8505,14 +8505,14 @@ paths:
       summary: Commit
       tags:
       - containers
-  /libpod/containers/{name:.*}/healthcheck:
+  /libpod/containers/{name}/healthcheck:
     get:
       description: Execute the defined healthcheck and return information about the results
       operationId: libpodRunHealthCheck
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       produces:
@@ -9616,14 +9616,14 @@ paths:
       summary: Start an exec instance
       tags:
       - exec
-  /libpod/generate/{name:.*}/kube:
+  /libpod/generate/{name}/kube:
     get:
       description: Generate Kubernetes YAML based on a pod or container.
       operationId: libpodGenerateKube
       parameters:
       - description: Name or ID of the container or pod.
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - default: false
@@ -9645,14 +9645,14 @@ paths:
       tags:
       - containers
       - pods
-  /libpod/generate/{name:.*}/systemd:
+  /libpod/generate/{name}/systemd:
     get:
       description: Generate Systemd Units based on a pod or container.
       operationId: libpodGenerateSystemd
       parameters:
       - description: Name or ID of the container or pod.
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - default: false
@@ -9713,14 +9713,14 @@ paths:
       tags:
       - containers
       - pods
-  /libpod/images/{name:.*}:
+  /libpod/images/{name}:
     delete:
       description: Remove an image from the local storage.
       operationId: libpodRemoveImage
       parameters:
       - description: name or ID of image to remove
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: remove the image even if used by containers or has other tags
@@ -9743,14 +9743,14 @@ paths:
       summary: Remove an image from the local storage.
       tags:
       - images
-  /libpod/images/{name:.*}/exists:
+  /libpod/images/{name}/exists:
     get:
       description: Check if image exists in local store
       operationId: libpodImageExists
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       produces:
@@ -9765,14 +9765,14 @@ paths:
       summary: Image exists
       tags:
       - images
-  /libpod/images/{name:.*}/get:
+  /libpod/images/{name}/get:
     get:
       description: Export an image
       operationId: libpodExportImage
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: format for exported image
@@ -9798,14 +9798,14 @@ paths:
       summary: Export an image
       tags:
       - images
-  /libpod/images/{name:.*}/history:
+  /libpod/images/{name}/history:
     get:
       description: Return parent layers of an image.
       operationId: libpodImageHistory
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       produces:
@@ -9820,14 +9820,14 @@ paths:
       summary: History of an image
       tags:
       - images
-  /libpod/images/{name:.*}/json:
+  /libpod/images/{name}/json:
     get:
       description: Obtain low-level information about an image
       operationId: libpodInspectImage
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       produces:
@@ -9842,14 +9842,14 @@ paths:
       summary: Inspect an image
       tags:
       - images
-  /libpod/images/{name:.*}/push:
+  /libpod/images/{name}/push:
     post:
       description: Push an image to a container registry
       operationId: libpodPushImage
       parameters:
       - description: Name of image to push.
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: Allows for pushing the image to a different destintation than the image refers to.
@@ -9880,14 +9880,14 @@ paths:
       summary: Push Image
       tags:
       - images
-  /libpod/images/{name:.*}/tag:
+  /libpod/images/{name}/tag:
     post:
       description: Tag an image so that it becomes part of a repository.
       operationId: libpodTagImage
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: the repository to tag in
@@ -9914,14 +9914,14 @@ paths:
       summary: Tag an image
       tags:
       - images
-  /libpod/images/{name:.*}/tree:
+  /libpod/images/{name}/tree:
     get:
       description: Retrieve the image tree for the provided image name or ID
       operationId: libpodImageTree
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: show all child images and layers of the specified image
@@ -9940,14 +9940,14 @@ paths:
       summary: Image tree
       tags:
       - images
-  /libpod/images/{name:.*}/untag:
+  /libpod/images/{name}/untag:
     post:
       description: Untag an image. If not repo and tag are specified, all tags are removed from the image.
       operationId: libpodUntagImage
       parameters:
       - description: the name or ID of the container
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: the repository to untag
@@ -10282,14 +10282,14 @@ paths:
       summary: Get info
       tags:
       - system
-  /libpod/manifests/{name:.*}:
+  /libpod/manifests/{name}:
     delete:
       description: Remove an image from a manifest list
       operationId: RemoveManifest
       parameters:
       - description: the image associated with the manifest
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: image digest to be removed
@@ -10311,14 +10311,14 @@ paths:
       summary: Remove
       tags:
       - manifests
-  /libpod/manifests/{name:.*}/add:
+  /libpod/manifests/{name}/add:
     post:
       description: Add an image to a manifest list
       operationId: AddManifest
       parameters:
       - description: the name or ID of the manifest
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       - description: options for creating a manifest
@@ -10340,14 +10340,14 @@ paths:
           $ref: '#/responses/InternalError'
       tags:
       - manifests
-  /libpod/manifests/{name:.*}/json:
+  /libpod/manifests/{name}/json:
     get:
       description: Display a manifest list
       operationId: Inspect
       parameters:
       - description: the name or ID of the manifest
         in: path
-        name: name:.*
+        name: name
         required: true
         type: string
       produces:
