@@ -10300,7 +10300,8 @@ paths:
       - application/json
       responses:
         "200":
-          $ref: '#/definitions/IDResponse'
+          schema:
+            $ref: '#/definitions/IDResponse'
         "400":
           $ref: '#/responses/BadParamError'
         "404":
@@ -10329,7 +10330,8 @@ paths:
       - application/json
       responses:
         "200":
-          $ref: '#/definitions/IDResponse'
+          schema:
+            $ref: '#/definitions/IDResponse'
         "404":
           $ref: '#/responses/NoSuchManifest'
         "409":
@@ -10383,7 +10385,8 @@ paths:
       - application/json
       responses:
         "200":
-          $ref: '#/definitions/IDResponse'
+          schema:
+            $ref: '#/definitions/IDResponse'
         "400":
           $ref: '#/responses/BadParamError'
         "404":
@@ -10415,7 +10418,8 @@ paths:
       - application/json
       responses:
         "200":
-          $ref: '#/definitions/IDResponse'
+          schema:
+            $ref: '#/definitions/IDResponse'
         "400":
           $ref: '#/responses/BadParamError'
         "404":
@@ -10811,7 +10815,8 @@ paths:
       - application/json
       responses:
         "200":
-          $ref: '#/definitions/IdResponse'
+          schema:
+            $ref: '#/definitions/IdResponse'
         "400":
           $ref: '#/responses/BadParamError'
         "500":
