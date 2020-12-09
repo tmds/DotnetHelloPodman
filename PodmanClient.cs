@@ -18,7 +18,7 @@ namespace Podman
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.9.4.0 (NJsonSchema v10.3.1.0 (Newtonsoft.Json v12.0.0.0))")]
     public partial class PodmanClient 
     {
-        private string _baseUrl = "http://podman.io/";
+        private string _baseUrl = "http://podman.io/v1.0.0/libpod";
         private System.Net.Http.HttpClient _httpClient;
         private System.Lazy<Newtonsoft.Json.JsonSerializerSettings> _settings;
     
@@ -1287,7 +1287,7 @@ namespace Podman
         /// <param name="tail">Only return this number of log lines from the end of the logs</param>
         /// <returns>logs returned as a stream in response body.</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task LogsFromContainerAsync(string name, bool? follow = null, bool? stdout = null, bool? stderr = null, string since = null, string until = null, bool? timestamps = null, string tail = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<FileResponse> LogsFromContainerAsync(string name, bool? follow = null, bool? stdout = null, bool? stderr = null, string since = null, string until = null, bool? timestamps = null, string tail = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -1332,6 +1332,7 @@ namespace Podman
                 using (var request_ = new System.Net.Http.HttpRequestMessage())
                 {
                     request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
     
                     PrepareRequest(client_, request_, urlBuilder_);
                     var url_ = urlBuilder_.ToString();
@@ -1352,9 +1353,12 @@ namespace Podman
                         ProcessResponse(client_, response_);
     
                         var status_ = (int)response_.StatusCode;
-                        if (status_ == 200)
+                        if (status_ == 200 || status_ == 206)
                         {
-                            return;
+                            var responseStream_ = response_.Content == null ? System.IO.Stream.Null : await response_.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                            var fileResponse_ = new FileResponse(status_, headers_, responseStream_, null, response_); 
+                            disposeClient_ = false; disposeResponse_ = false; // response and client are disposed by FileResponse
+                            return fileResponse_;
                         }
                         else
                         if (status_ == 404)
@@ -1489,7 +1493,7 @@ namespace Podman
         /// <param name="w">Width to set for the terminal, in characters</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<object> ResizeContainerAsync(string name, int? h = null, int? w = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task ResizeContainerAsync(string name, int? h = null, int? w = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -1515,7 +1519,6 @@ namespace Podman
                 {
                     request_.Content = new System.Net.Http.StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
                     request_.Method = new System.Net.Http.HttpMethod("POST");
-                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
     
                     PrepareRequest(client_, request_, urlBuilder_);
                     var url_ = urlBuilder_.ToString();
@@ -1538,12 +1541,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<object>(response_, headers_).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            return objectResponse_.Object;
+                            return;
                         }
                         else
                         if (status_ == 404)
@@ -2167,7 +2165,7 @@ namespace Podman
         ///   - stopped</param>
         /// <returns>Wait container</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response11> WaitContainerAsync(string name, string condition = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<ContainerWaitResponse> WaitContainerAsync(string name, string condition = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -2212,7 +2210,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response11>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ContainerWaitResponse>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2264,7 +2262,7 @@ namespace Podman
         /// <param name="name">container name</param>
         /// <returns>Create container</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response12> CreateContainerAsync(string name = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<ContainerCreateResponse> CreateContainerAsync(string name = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/containers/create?");
@@ -2305,7 +2303,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 201)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response12>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ContainerCreateResponse>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2712,12 +2710,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response13>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response11>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response13>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response11>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -2809,12 +2807,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response13>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response11>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response13>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response11>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -2898,12 +2896,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response13>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response11>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response13>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response11>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 409)
@@ -3137,7 +3135,7 @@ namespace Podman
         /// <param name="name">the name or ID of the container</param>
         /// <returns>History response</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response14> ImageHistoryAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response12> ImageHistoryAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -3176,7 +3174,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response14>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response12>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3228,7 +3226,7 @@ namespace Podman
         /// <param name="name">the name or ID of the container</param>
         /// <returns>Inspect response</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response15> InspectImageAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response13> InspectImageAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -3267,7 +3265,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response15>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response13>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3539,7 +3537,7 @@ namespace Podman
         /// <param name="request">Image content if fromSrc parameter was used</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<object> CreateImageAsync(string fromImage = null, string fromSrc = null, string tag = null, string x_Registry_Auth = null, string request = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task CreateImageAsync(string fromImage = null, string fromSrc = null, string tag = null, string x_Registry_Auth = null, string request = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/images/create?");
@@ -3569,7 +3567,6 @@ namespace Podman
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("POST");
-                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
     
                     PrepareRequest(client_, request_, urlBuilder_);
                     var url_ = urlBuilder_.ToString();
@@ -3592,12 +3589,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<object>(response_, headers_).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            return objectResponse_.Object;
+                            return;
                         }
                         else
                         if (status_ == 404)
@@ -3914,7 +3906,7 @@ namespace Podman
         /// - `stars=&lt;number&gt;` Matches images that has at least 'number' stars.</param>
         /// <returns>Search results</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response16> SearchImagesAsync(string term = null, int? limit = null, string filters = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response14> SearchImagesAsync(string term = null, int? limit = null, string filters = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/images/search?");
@@ -3962,7 +3954,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response16>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response14>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -4229,7 +4221,7 @@ namespace Podman
         /// (As of version 2.0.0)</param>
         /// <returns>OK (As of version 1.xx)</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response17> LibpodBuildImageAsync(string dockerfile = null, string t = null, string extrahosts = null, string remote = null, bool? q = null, bool? nocache = null, string cachefrom = null, bool? pull = null, bool? rm = null, bool? forcerm = null, int? memory = null, int? memswap = null, int? cpushares = null, string cpusetcpus = null, int? cpuperiod = null, int? cpuquota = null, string buildargs = null, int? shmsize = null, bool? squash = null, string labels = null, string networkmode = null, string platform = null, string target = null, string outputs = null, bool? httpproxy = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response15> LibpodBuildImageAsync(string dockerfile = null, string t = null, string extrahosts = null, string remote = null, bool? q = null, bool? nocache = null, string cachefrom = null, bool? pull = null, bool? rm = null, bool? forcerm = null, int? memory = null, int? memswap = null, int? cpushares = null, string cpusetcpus = null, int? cpuperiod = null, int? cpuquota = null, string buildargs = null, int? shmsize = null, bool? squash = null, string labels = null, string networkmode = null, string platform = null, string target = null, string outputs = null, bool? httpproxy = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/libpod/build?");
@@ -4366,7 +4358,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response17>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response15>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -4540,7 +4532,7 @@ namespace Podman
         /// <param name="name">the name or ID of the container</param>
         /// <returns>Healthcheck</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response18> LibpodRunHealthCheckAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response16> LibpodRunHealthCheckAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -4579,7 +4571,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response18>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response16>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -5661,7 +5653,7 @@ namespace Podman
         /// <param name="size">display filesystem usage</param>
         /// <returns>Inspect container</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response19> LibpodGetContainerAsync(string name, bool? size = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response17> LibpodGetContainerAsync(string name, bool? size = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -5705,7 +5697,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response19>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response17>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -6160,7 +6152,7 @@ namespace Podman
         /// <param name="w">Width to set for the terminal, in characters</param>
         /// <returns>Success</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<object> LibpodResizeContainerAsync(string name, int? h = null, int? w = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task LibpodResizeContainerAsync(string name, int? h = null, int? w = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -6186,7 +6178,6 @@ namespace Podman
                 {
                     request_.Content = new System.Net.Http.StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
                     request_.Method = new System.Net.Http.HttpMethod("POST");
-                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
     
                     PrepareRequest(client_, request_, urlBuilder_);
                     var url_ = urlBuilder_.ToString();
@@ -6209,12 +6200,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<object>(response_, headers_).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            return objectResponse_.Object;
+                            return;
                         }
                         else
                         if (status_ == 404)
@@ -7057,7 +7043,7 @@ namespace Podman
         ///   - stopped</param>
         /// <returns>Wait container</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response11> LibpodWaitContainerAsync(string name, string condition = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<ContainerWaitResponse> LibpodWaitContainerAsync(string name, string condition = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -7102,7 +7088,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response11>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ContainerWaitResponse>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7154,7 +7140,7 @@ namespace Podman
         /// <param name="create">attributes for creating a container</param>
         /// <returns>Create container</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response12> LibpodCreateContainerAsync(SpecGenerator create = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<ContainerCreateResponse> LibpodCreateContainerAsync(SpecGenerator create = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/libpod/containers/create");
@@ -7192,7 +7178,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 201)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response12>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<ContainerCreateResponse>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7781,12 +7767,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response13>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response11>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response13>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response11>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -7878,12 +7864,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response13>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response11>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response13>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response11>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -7967,12 +7953,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response13>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response11>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response13>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response11>("No such exec instance", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 409)
@@ -8519,7 +8505,7 @@ namespace Podman
         /// <param name="name">the name or ID of the container</param>
         /// <returns>History response</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response14> LibpodImageHistoryAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response12> LibpodImageHistoryAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -8558,7 +8544,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response14>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response12>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -8610,7 +8596,7 @@ namespace Podman
         /// <param name="name">the name or ID of the container</param>
         /// <returns>Inspect image</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response20> LibpodInspectImageAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response18> LibpodInspectImageAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -8649,7 +8635,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response20>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response18>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -8923,7 +8909,7 @@ namespace Podman
         /// <param name="whatrequires">show all child images and layers of the specified image</param>
         /// <returns>Image tree response</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response21> LibpodImageTreeAsync(string name, bool? whatrequires = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response19> LibpodImageTreeAsync(string name, bool? whatrequires = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -8967,7 +8953,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response21>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response19>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -9962,7 +9948,7 @@ namespace Podman
         /// - `stars=&lt;number&gt;` Matches images that has at least 'number' stars.</param>
         /// <returns>Search results</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response16> LibpodSearchImagesAsync(string term = null, int? limit = null, bool? noTrunc = null, string filters = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response14> LibpodSearchImagesAsync(string term = null, int? limit = null, bool? noTrunc = null, string filters = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/libpod/images/search?");
@@ -10014,7 +10000,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response16>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response14>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -10196,12 +10182,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response20>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response22>("No such manifest", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response20>("No such manifest", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -10289,12 +10275,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response20>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response22>("No such manifest", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response20>("No such manifest", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 409)
@@ -10390,12 +10376,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response20>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response22>("No such manifest", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response20>("No such manifest", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -10502,12 +10488,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response20>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response22>("No such manifest", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response20>("No such manifest", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -10711,12 +10697,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response23>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response21>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response23>("No such network", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response21>("No such network", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -10802,12 +10788,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response23>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response21>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response23>("No such network", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response21>("No such network", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -11178,12 +11164,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -11263,12 +11249,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -11305,7 +11291,7 @@ namespace Podman
         /// <param name="name">the name or ID of the pod</param>
         /// <returns>Inspect pod</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response25> InspectPodAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response23> InspectPodAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -11344,7 +11330,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response25>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response23>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -11354,12 +11340,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -11462,12 +11448,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 409)
@@ -11564,12 +11550,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -11656,12 +11642,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -11748,22 +11734,22 @@ namespace Podman
                         else
                         if (status_ == 304)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response26>(response_, headers_).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            throw new ApiException<Response26>("Pod already started", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
-                        }
-                        else
-                        if (status_ == 404)
-                        {
                             var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response24>("Pod already started", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -11856,12 +11842,12 @@ namespace Podman
                         else
                         if (status_ == 304)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response27>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response25>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response27>("Pod already stopped", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response25>("Pod already stopped", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 400)
@@ -11876,12 +11862,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -11920,7 +11906,7 @@ namespace Podman
         /// <param name="ps_args">arguments to pass to ps such as aux. Requires ps(1) to be installed in the container if no ps(1) compatible AIX descriptors are used.</param>
         /// <returns>List processes in pod</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response28> TopPodAsync(string name, bool? stream = null, string ps_args = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response26> TopPodAsync(string name, bool? stream = null, string ps_args = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -11968,7 +11954,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response28>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response26>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -11978,12 +11964,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -12070,12 +12056,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -12387,7 +12373,7 @@ namespace Podman
         /// <param name="namesOrIDs">Names or IDs of pods.</param>
         /// <returns>List processes in pod</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response28> StatsPodAsync(bool? all = null, System.Collections.Generic.IEnumerable<string> namesOrIDs = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response26> StatsPodAsync(bool? all = null, System.Collections.Generic.IEnumerable<string> namesOrIDs = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/libpod/pods/stats?");
@@ -12431,7 +12417,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response28>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response26>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12441,12 +12427,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response24>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response22>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response24>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response22>("No such pod", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -12482,7 +12468,7 @@ namespace Podman
         /// <summary>Show disk usage</summary>
         /// <returns>Disk usage</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response29> DfAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response27> DfAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/libpod/system/df");
@@ -12517,7 +12503,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response29>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response27>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12558,7 +12544,7 @@ namespace Podman
         /// <summary>Prune unused data</summary>
         /// <returns>Prune report</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response30> PruneSystemAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response28> PruneSystemAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/libpod/system/prune");
@@ -12594,7 +12580,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response30>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response28>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12645,7 +12631,7 @@ namespace Podman
         /// <summary>Component Version information</summary>
         /// <returns>Version</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response31> SystemVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response29> SystemVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/libpod/version");
@@ -12680,7 +12666,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response31>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response29>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12761,12 +12747,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response32>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response30>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response32>("No such volume", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response30>("No such volume", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 409)
@@ -12809,7 +12795,7 @@ namespace Podman
         /// <param name="name">the name or ID of the volume</param>
         /// <returns>Volume create response</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response33> LibpodInspectVolumeAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response31> LibpodInspectVolumeAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -12848,7 +12834,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response33>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response31>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12858,12 +12844,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response32>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response30>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response32>("No such volume", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response30>("No such volume", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -12900,7 +12886,7 @@ namespace Podman
         /// <param name="create">attributes for creating a container</param>
         /// <returns>Volume create response</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response33> LibpodCreateVolumeAsync(VolumeCreate create = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response31> LibpodCreateVolumeAsync(VolumeCreate create = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/libpod/volumes/create");
@@ -12938,7 +12924,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 201)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response33>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response31>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13268,12 +13254,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response23>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response21>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response23>("No such network", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response21>("No such network", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -13359,12 +13345,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response23>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response21>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response23>("No such network", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response21>("No such network", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -13401,7 +13387,7 @@ namespace Podman
         /// <param name="create">attributes for creating a container</param>
         /// <returns>Network create</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response34> CompatCreateNetworkAsync(NetworkCreateRequest create = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response32> CompatCreateNetworkAsync(NetworkCreateRequest create = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/networks/create");
@@ -13439,7 +13425,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response34>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response32>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13490,7 +13476,7 @@ namespace Podman
         /// <summary>Component Version information</summary>
         /// <returns>Version</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response31> CompatSystemVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response29> CompatSystemVersionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/version");
@@ -13525,7 +13511,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response31>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response29>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13563,7 +13549,7 @@ namespace Podman
         ///   The boolean `dangling` filter is not yet implemented for this endpoint.</param>
         /// <returns>Volume list response</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response35> ListVolumesAsync(string filters = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response33> ListVolumesAsync(string filters = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/volumes?");
@@ -13603,7 +13589,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response35>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response33>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13696,12 +13682,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response32>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response30>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response32>("No such volume", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response30>("No such volume", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 409)
@@ -13744,7 +13730,7 @@ namespace Podman
         /// <param name="name">the name or ID of the volume</param>
         /// <returns>This response definition is used for both the create and inspect endpoints</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response36> InspectVolumeAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response34> InspectVolumeAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (name == null)
                 throw new System.ArgumentNullException("name");
@@ -13783,7 +13769,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response36>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response34>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13793,12 +13779,12 @@ namespace Podman
                         else
                         if (status_ == 404)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response32>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response30>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
-                            throw new ApiException<Response32>("No such volume", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                            throw new ApiException<Response30>("No such volume", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         if (status_ == 500)
@@ -13836,7 +13822,7 @@ namespace Podman
         /// Note: If a volume by the same name exists, a 201 response with that volume's information will be generated.</param>
         /// <returns>This response definition is used for both the create and inspect endpoints</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response36> CreateVolumeAsync(DockerVolumeCreate create = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response34> CreateVolumeAsync(DockerVolumeCreate create = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/volumes/create");
@@ -13874,7 +13860,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 201)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response36>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response34>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13918,7 +13904,7 @@ namespace Podman
         /// Note: No filters are currently supported and any filters specified will cause an error response.</param>
         /// <returns>Volume prune response</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task<Response37> PruneVolumesAsync(string filters = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public async System.Threading.Tasks.Task<Response35> PruneVolumesAsync(string filters = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var urlBuilder_ = new System.Text.StringBuilder();
             urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/volumes/prune?");
@@ -13959,7 +13945,7 @@ namespace Podman
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<Response37>(response_, headers_).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<Response35>(response_, headers_).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -21069,7 +21055,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response11 
+    public partial class ContainerWaitResponse 
     {
         [Newtonsoft.Json.JsonProperty("Error", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Error Error { get; set; }
@@ -21082,7 +21068,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response12 
+    public partial class ContainerCreateResponse 
     {
         /// <summary>ID of the container created</summary>
         [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -21096,7 +21082,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response13 
+    public partial class Response11 
     {
         /// <summary>API root cause formatted for automated parsing</summary>
         [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -21114,7 +21100,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response14 
+    public partial class Response12 
     {
         [Newtonsoft.Json.JsonProperty("Comment", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Comment { get; set; }
@@ -21138,7 +21124,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response15 
+    public partial class Response13 
     {
         [Newtonsoft.Json.JsonProperty("Architecture", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Architecture { get; set; }
@@ -21204,7 +21190,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response16 
+    public partial class Response14 
     {
         /// <summary>Automated indicates if the image was created by an automated build.</summary>
         [Newtonsoft.Json.JsonProperty("Automated", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -21234,7 +21220,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response17 
+    public partial class Response15 
     {
         /// <summary>output from build process</summary>
         [Newtonsoft.Json.JsonProperty("stream", Required = Newtonsoft.Json.Required.Always)]
@@ -21245,7 +21231,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response18 
+    public partial class Response16 
     {
         /// <summary>FailingStreak is the number of consecutive failed healthchecks</summary>
         [Newtonsoft.Json.JsonProperty("FailingStreak", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -21263,7 +21249,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response19 
+    public partial class Response17 
     {
         [Newtonsoft.Json.JsonProperty("AppArmorProfile", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string AppArmorProfile { get; set; }
@@ -21383,7 +21369,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response20 
+    public partial class Response18 
     {
         [Newtonsoft.Json.JsonProperty("Annotations", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.Dictionary<string, string> Annotations { get; set; }
@@ -21458,7 +21444,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response21 
+    public partial class Response19 
     {
         [Newtonsoft.Json.JsonProperty("id", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Id { get; set; }
@@ -21471,6 +21457,42 @@ namespace Podman
     
         [Newtonsoft.Json.JsonProperty("tags", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.List<string> Tags { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
+    public partial class Response20 
+    {
+        /// <summary>API root cause formatted for automated parsing</summary>
+        [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Cause { get; set; }
+    
+        /// <summary>human error message, formatted for a human to read</summary>
+        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Message { get; set; }
+    
+        /// <summary>http response code</summary>
+        [Newtonsoft.Json.JsonProperty("response", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public long? Response { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
+    public partial class Response21 
+    {
+        /// <summary>API root cause formatted for automated parsing</summary>
+        [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Cause { get; set; }
+    
+        /// <summary>human error message, formatted for a human to read</summary>
+        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Message { get; set; }
+    
+        /// <summary>http response code</summary>
+        [Newtonsoft.Json.JsonProperty("response", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public long? Response { get; set; }
     
     
     }
@@ -21495,42 +21517,6 @@ namespace Podman
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
     public partial class Response23 
-    {
-        /// <summary>API root cause formatted for automated parsing</summary>
-        [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Cause { get; set; }
-    
-        /// <summary>human error message, formatted for a human to read</summary>
-        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Message { get; set; }
-    
-        /// <summary>http response code</summary>
-        [Newtonsoft.Json.JsonProperty("response", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public long? Response { get; set; }
-    
-    
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response24 
-    {
-        /// <summary>API root cause formatted for automated parsing</summary>
-        [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Cause { get; set; }
-    
-        /// <summary>human error message, formatted for a human to read</summary>
-        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Message { get; set; }
-    
-        /// <summary>http response code</summary>
-        [Newtonsoft.Json.JsonProperty("response", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public long? Response { get; set; }
-    
-    
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response25 
     {
         /// <summary>CgroupParent is the parent of the pod's CGroup.</summary>
         [Newtonsoft.Json.JsonProperty("CgroupParent", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -21611,43 +21597,43 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
+    public partial class Response24 
+    {
+        /// <summary>API root cause formatted for automated parsing</summary>
+        [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Cause { get; set; }
+    
+        /// <summary>human error message, formatted for a human to read</summary>
+        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Message { get; set; }
+    
+        /// <summary>http response code</summary>
+        [Newtonsoft.Json.JsonProperty("response", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public long? Response { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
+    public partial class Response25 
+    {
+        /// <summary>API root cause formatted for automated parsing</summary>
+        [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Cause { get; set; }
+    
+        /// <summary>human error message, formatted for a human to read</summary>
+        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Message { get; set; }
+    
+        /// <summary>http response code</summary>
+        [Newtonsoft.Json.JsonProperty("response", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public long? Response { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
     public partial class Response26 
-    {
-        /// <summary>API root cause formatted for automated parsing</summary>
-        [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Cause { get; set; }
-    
-        /// <summary>human error message, formatted for a human to read</summary>
-        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Message { get; set; }
-    
-        /// <summary>http response code</summary>
-        [Newtonsoft.Json.JsonProperty("response", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public long? Response { get; set; }
-    
-    
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response27 
-    {
-        /// <summary>API root cause formatted for automated parsing</summary>
-        [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Cause { get; set; }
-    
-        /// <summary>human error message, formatted for a human to read</summary>
-        [Newtonsoft.Json.JsonProperty("message", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Message { get; set; }
-    
-        /// <summary>http response code</summary>
-        [Newtonsoft.Json.JsonProperty("response", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public long? Response { get; set; }
-    
-    
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response28 
     {
         /// <summary>Each process running in the container, where each is process
         /// is an array of values corresponding to the titles.</summary>
@@ -21664,7 +21650,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response29 
+    public partial class Response27 
     {
         [Newtonsoft.Json.JsonProperty("Containers", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.List<SystemDfContainerReport> Containers { get; set; }
@@ -21679,7 +21665,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response30 
+    public partial class Response28 
     {
         [Newtonsoft.Json.JsonProperty("Err", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.Dictionary<string, string> Err { get; set; }
@@ -21703,7 +21689,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response31 
+    public partial class Response29 
     {
         [Newtonsoft.Json.JsonProperty("Client", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Version Client { get; set; }
@@ -21715,7 +21701,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response32 
+    public partial class Response30 
     {
         /// <summary>API root cause formatted for automated parsing</summary>
         [Newtonsoft.Json.JsonProperty("cause", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -21733,7 +21719,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response33 
+    public partial class Response31 
     {
         /// <summary>Anonymous indicates that the volume was created as an anonymous
         /// volume for a specific container, and will be be removed when any
@@ -21793,7 +21779,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response34 
+    public partial class Response32 
     {
         [Newtonsoft.Json.JsonProperty("Attachable", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public bool? Attachable { get; set; }
@@ -21842,7 +21828,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response35 
+    public partial class Response33 
     {
         [Newtonsoft.Json.JsonProperty("Volumes", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.List<VolumeInfo> Volumes { get; set; }
@@ -21851,7 +21837,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response36 
+    public partial class Response34 
     {
         /// <summary>Date/Time the volume was created.</summary>
         [Newtonsoft.Json.JsonProperty("CreatedAt", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -21904,7 +21890,7 @@ namespace Podman
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.3.1.0 (Newtonsoft.Json v12.0.0.0)")]
-    public partial class Response37 
+    public partial class Response35 
     {
         [Newtonsoft.Json.JsonProperty("SpaceReclaimed", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int? SpaceReclaimed { get; set; }

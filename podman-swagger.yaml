@@ -1,4 +1,4 @@
-basePath: /
+basePath: /v1.0.0/libpod
 consumes:
 - application/json
 - application/x-tar
@@ -7401,6 +7401,9 @@ paths:
       responses:
         "200":
           description: logs returned as a stream in response body.
+          schema:
+            type: "string"
+            format: "binary"
         "404":
           $ref: '#/responses/NoSuchContainer'
         "500":
@@ -11393,6 +11396,7 @@ responses:
   ContainerCreateResponse:
     description: Create container
     schema:
+      title: "ContainerCreateResponse"
       properties:
         Id:
           description: ID of the container created
@@ -11407,6 +11411,7 @@ responses:
   ContainerWaitResponse:
     description: Wait container
     schema:
+      title: ContainerWaitResponse
       properties:
         Error:
           properties:
@@ -12512,8 +12517,6 @@ responses:
       type: array
   ok:
     description: Success
-    schema:
-      type: object
 schemes:
 - http
 - https
