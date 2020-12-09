@@ -8,7 +8,7 @@ using Podman;
 
 SocketsHttpHandler httpHandler = new SocketsHttpHandler()
 {
-    ConnectCallback = delegate
+    ConnectCallback = static delegate
     {
         var endpoint = new UnixDomainSocketEndPoint($"/run/user/{getuid()}/podman/podman.sock");
         var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
@@ -21,26 +21,26 @@ SocketsHttpHandler httpHandler = new SocketsHttpHandler()
 };
 
 HttpClient client = new HttpClient(httpHandler);
-
 PodmanClient podmanClient = new PodmanClient(client);
 
-// Pull the image.
-await podmanClient.CreateImageAsync(fromImage: "registry.redhat.io/ubi8/dotnet-50",
+Console.WriteLine("Pull image");
+await podmanClient.CreateImageAsync(fromImage: "registry.access.redhat.com/ubi8/dotnet-50",
                                     tag: "latest");
 
-// Create container.
+Console.WriteLine("Create container");
 ContainerCreateResponse containerCreateResponse = await podmanClient.CreateContainerAsync(/* TODO: where is body? */);
 string cid = containerCreateResponse.Id;
 
-// Start container.
+Console.WriteLine("Start container");
 await podmanClient.StartContainerAsync(cid);
 
-// Wait for container to exit.
+Console.WriteLine("Wait for exit");
 ContainerWaitResponse containerWaitResponse = await podmanClient.WaitContainerAsync(cid);
 long? exitCode = containerWaitResponse.StatusCode;
 
-// Read the logs.
+Console.WriteLine("Get logs");
 using FileResponse logsResponse = await podmanClient.LogsFromContainerAsync(cid, stdout: true, stderr: true);
 string logs = await new StreamReader(logsResponse.Stream).ReadToEndAsync();
 
-System.Console.WriteLine(logs);
+Console.WriteLine("Container logs: ");
+Console.WriteLine(logs);
